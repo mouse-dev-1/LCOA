@@ -30,7 +30,6 @@ contract _2052Passport is ERC721, Ownable {
     }
 
     function mintPassport(
-        uint8 passportType,
         uint8 v,
         bytes32 r,
         bytes32 s
@@ -41,7 +40,7 @@ contract _2052Passport is ERC721, Ownable {
             "Wallet has already minted a passport!"
         );
 
-        require(verifyHash(keccak256(abi.encodePacked(passportType, msg.sender)), v, r, s) == SIGNER,"Sig not valid!");
+        require(verifyHash(keccak256(abi.encodePacked(msg.sender)), v, r, s) == SIGNER,"Sig not valid!");
 
         //Mark minted before minting.
         walletHasMinted[msg.sender] = true;

@@ -25,8 +25,6 @@ module.exports = {
     },
   },
   etherscan: {
-    apiKey: {
-      rinkeby: process.env.ETHERSCAN_API_KEY,
-    },
+    apiKey: process.env.ETHERSCAN_API_KEY
   },
 };

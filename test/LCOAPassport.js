@@ -15,13 +15,8 @@ var signerPublic = "0x59AF6eB470D980C7dfF9e977b87D8FdA92174860";
 
 let signerWallet = new ethers.Wallet(signerPrivate);
 
-const signForPassportMint = async (passportType, passportMinter) => {
-  let messageHash = ethers.utils.keccak256(
-    ethers.utils.solidityPack(
-      ["uint8", "address"],
-      [passportType, passportMinter]
-    )
-  );
+const signForPassportMint = async (passportMinter) => {
+  let messageHash = ethers.utils.keccak256(passportMinter);
 
   let messageHashBytes = ethers.utils.arrayify(messageHash);
 
@@ -36,8 +31,8 @@ before(async function () {
 
   [owner, minter2, minter3] = await ethers.getSigners();
 
-  sig1 = await signForPassportMint(0, minter2.address);
-  sig2 = await signForPassportMint(1, minter3.address);
+  sig1 = await signForPassportMint(minter2.address);
+  sig2 = await signForPassportMint(minter3.address);
 
   await LCOAP.setSigner(signerPublic);
 
@@ -46,10 +41,10 @@ before(async function () {
 
 describe("Greeter", function () {
   it("Mints passport type 0 for minter 2", async function () {
-    await LCOAP.connect(minter2).mintPassport(0, sig1.v, sig1.r, sig1.s);
+    await LCOAP.connect(minter2).mintPassport(sig1.v, sig1.r, sig1.s);
   });
 
   it("Mints passport type 1 for minter 3", async function () {
-    await LCOAP.connect(minter3).mintPassport(1, sig2.v, sig2.r, sig2.s);
+    await LCOAP.connect(minter3).mintPassport(sig2.v, sig2.r, sig2.s);
   });
 });
