@@ -5,7 +5,7 @@ import "hardhat/console.sol";
 import "@rari-capital/solmate/src/tokens/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract LCOAPassport is ERC721, Ownable {
+contract _2052Passport is ERC721, Ownable {
     address public SIGNER;
 
     string public BASE_URI;
@@ -14,7 +14,7 @@ contract LCOAPassport is ERC721, Ownable {
 
     mapping(address => bool) public walletHasMinted;
 
-    constructor() ERC721("LCOAPassport", "LCOAP") {}
+    constructor() ERC721("2052 Passport", "205Z") {}
 
     function verifyHash(
         bytes32 hash,

@@ -31,7 +31,7 @@ const signForPassportMint = async (passportType, passportMinter) => {
 };
 
 before(async function () {
-  _LCOAP = await ethers.getContractFactory("LCOAPassport");
+  _LCOAP = await ethers.getContractFactory("_2052Passport");
   LCOAP = await _LCOAP.deploy();
 
   [owner, minter2, minter3] = await ethers.getSigners();
