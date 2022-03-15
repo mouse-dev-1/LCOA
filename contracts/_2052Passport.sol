@@ -10,6 +10,8 @@ contract _2052Passport is ERC721, Ownable {
 
     string public BASE_URI;
 
+    string public CONTRACT_URI;
+
     uint256 totalSupply = 0;
 
     mapping(address => bool) public walletHasMinted;
@@ -40,7 +42,11 @@ contract _2052Passport is ERC721, Ownable {
             "Wallet has already minted a passport!"
         );
 
-        require(verifyHash(keccak256(abi.encodePacked(msg.sender)), v, r, s) == SIGNER,"Sig not valid!");
+        require(
+            verifyHash(keccak256(abi.encodePacked(msg.sender)), v, r, s) ==
+                SIGNER,
+            "Sig not valid!"
+        );
 
         //Mark minted before minting.
         walletHasMinted[msg.sender] = true;
@@ -53,11 +59,19 @@ contract _2052Passport is ERC721, Ownable {
         return string(abi.encodePacked(BASE_URI, id));
     }
 
+    function contractURI() public view returns (string memory) {
+        return CONTRACT_URI;
+    }
+
     function setBaseURI(string memory _baseURI) public onlyOwner {
         BASE_URI = _baseURI;
     }
 
     function setSigner(address _signer) public onlyOwner {
         SIGNER = _signer;
+    }
+
+    function setContractURI(string memory _contractURI) public onlyOwner {
+        CONTRACT_URI = _contractURI;
     }
 }
