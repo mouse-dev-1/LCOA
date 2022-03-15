@@ -1,10 +1,4 @@
-const { expect } = require("chai");
-const { BigNumber } = require("ethers");
 const { ethers, waffle } = require("hardhat");
-const {
-  createPrivateKeySync,
-  ecdsaSign,
-} = require("ethereum-cryptography/secp256k1");
 
 let _LCOAP;
 let LCOAP;
