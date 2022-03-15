@@ -10,8 +10,7 @@ contract LCOAPassport is ERC721, Ownable {
 
     string public BASE_URI;
 
-    uint256 currentPriorityId = 1;
-    uint256 currentAverageId = 201;
+    uint256 totalSupply = 0;
 
     mapping(address => bool) public walletHasMinted;
 
@@ -36,31 +35,19 @@ contract LCOAPassport is ERC721, Ownable {
         bytes32 r,
         bytes32 s
     ) public {
-        bytes32 hash = keccak256(abi.encodePacked(passportType, msg.sender));
-
-        require(verifyHash(hash,v,r,s) == SIGNER, "Sig not valid!");
-
+        require(totalSupply < 2000);
         require(
             !walletHasMinted[msg.sender],
             "Wallet has already minted a passport!"
         );
 
+        require(verifyHash(keccak256(abi.encodePacked(passportType, msg.sender)), v, r, s) == SIGNER,"Sig not valid!");
+
         //Mark minted before minting.
         walletHasMinted[msg.sender] = true;
 
-        if (passportType == 0) {
-            require(currentPriorityId < 200);
-            _mint(msg.sender, currentPriorityId);
-            ++currentPriorityId;
-            return;
-        }
-
-        if (passportType == 1) {
-            require(currentAverageId < 2000);
-            _mint(msg.sender, currentAverageId);
-            ++currentAverageId;
-            return;
-        }
+        _mint(msg.sender, totalSupply);
+        ++totalSupply;
     }
 
     function tokenURI(uint256 id) public view override returns (string memory) {
