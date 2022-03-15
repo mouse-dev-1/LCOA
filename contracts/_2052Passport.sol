@@ -2,17 +2,15 @@
 pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
-import "@rari-capital/solmate/src/tokens/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract _2052Passport is ERC721, Ownable {
+contract _2052Passport is ERC721Enumerable, Ownable {
     address public SIGNER;
 
     string public BASE_URI;
 
     string public CONTRACT_URI;
-
-    uint256 totalSupply = 0;
 
     mapping(address => bool) public walletHasMinted;
 
@@ -23,7 +21,7 @@ contract _2052Passport is ERC721, Ownable {
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) public pure returns (address signer) {
+    ) internal pure returns (address signer) {
         bytes32 messageDigest = keccak256(
             abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)
         );
@@ -36,7 +34,8 @@ contract _2052Passport is ERC721, Ownable {
         bytes32 r,
         bytes32 s
     ) public {
-        require(totalSupply < 2000);
+        uint256 _totalSupply = totalSupply();
+        require(_totalSupply < 2000);
         require(
             !walletHasMinted[msg.sender],
             "Wallet has already minted a passport!"
@@ -51,12 +50,26 @@ contract _2052Passport is ERC721, Ownable {
         //Mark minted before minting.
         walletHasMinted[msg.sender] = true;
 
-        _mint(msg.sender, totalSupply);
-        ++totalSupply;
+        _mint(msg.sender, _totalSupply);
     }
 
     function tokenURI(uint256 id) public view override returns (string memory) {
         return string(abi.encodePacked(BASE_URI, id));
+    }
+
+    function walletOfOwner(address _owner)
+        external
+        view
+        returns (uint256[] memory)
+    {
+        uint256 tokenCount = balanceOf(_owner);
+
+        uint256[] memory tokensId = new uint256[](tokenCount);
+        for (uint256 i = 0; i < tokenCount; i++) {
+            tokensId[i] = tokenOfOwnerByIndex(_owner, i);
+        }
+
+        return tokensId;
     }
 
     function contractURI() public view returns (string memory) {
