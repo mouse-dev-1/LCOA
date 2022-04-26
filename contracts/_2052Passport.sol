@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract _2052Passport is ERC721Enumerable, Ownable {
     address public SIGNER;
@@ -54,7 +55,8 @@ contract _2052Passport is ERC721Enumerable, Ownable {
     }
 
     function tokenURI(uint256 id) public view override returns (string memory) {
-        return string(abi.encodePacked(BASE_URI, id));
+        require(_exists(id), "Token does not exist!");
+        return string(abi.encodePacked(BASE_URI, Strings.toString(id)));
     }
 
     function walletOfOwner(address _owner)
