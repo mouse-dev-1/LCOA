@@ -1,4 +1,5 @@
 const { ethers, waffle } = require("hardhat");
+const { expect } = require("chai");
 
 let _LCOAP;
 let LCOAP;
@@ -46,5 +47,14 @@ describe("Greeter", function () {
 
   it("Mints passport type 1 for minter 3", async function () {
     await LCOAP.connect(minter3).mintPassport(sig2.v, sig2.r, sig2.s);
+  });
+
+  
+  it("Royalty test", async function () {
+    // Test royalties
+    await LCOAP.updateRoyalties(minter2.address, 1000);
+    const royaltyAmount = await LCOAP.royaltyInfo(1, 1000);
+    expect(royaltyAmount[0]).to.equal(minter2.address);
+    expect(royaltyAmount[1]).to.deep.equal(ethers.BigNumber.from(100));
   });
 });
