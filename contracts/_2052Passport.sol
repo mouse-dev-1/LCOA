@@ -15,6 +15,11 @@ contract _2052Passport is ERC721Enumerable, Ownable {
 
     mapping(address => bool) public walletHasMinted;
 
+    //EIP2981
+    uint256 private _royaltyBps;
+    address payable private _royaltyRecipient;
+    bytes4 private constant _INTERFACE_ID_ROYALTIES_EIP2981 = 0x2a55205a;
+
     constructor() ERC721("2052 Passport", "205Z") {}
 
     function verifyHash(
@@ -88,5 +93,41 @@ contract _2052Passport is ERC721Enumerable, Ownable {
 
     function setContractURI(string memory _contractURI) public onlyOwner {
         CONTRACT_URI = _contractURI;
+    }
+
+
+    /**
+     * ROYALTY FUNCTIONS
+     */
+    function updateRoyalties(address payable recipient, uint256 bps)
+        external
+        onlyOwner
+    {
+        _royaltyRecipient = recipient;
+        _royaltyBps = bps;
+    }
+    
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(ERC721Enumerable)
+        returns (bool)
+    {
+        return
+            super.supportsInterface(interfaceId) ||
+            interfaceId == _INTERFACE_ID_ROYALTIES_EIP2981;
+    }
+
+    
+    function royaltyInfo(uint256, uint256 value)
+        external
+        view
+        returns (address, uint256)
+    {
+        return (_royaltyRecipient, (value * _royaltyBps) / 10000);
     }
 }
