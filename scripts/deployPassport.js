@@ -9,6 +9,8 @@ async function main() {
   console.log(`Deployed LCOAP at address: ${LCOAP.address}`);
 
   await LCOAP.setSigner(signerPublic);
+  
+  await LCOAP.updateRoyalties("0x59AF6eB470D980C7dfF9e977b87D8FdA92174860", 1000);
 
 }
 

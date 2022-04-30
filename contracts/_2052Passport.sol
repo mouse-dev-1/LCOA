@@ -1,6 +1,14 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
+/*
+
+_2052Passport.sol
+
+Written by: mousedev.eth
+
+*/
+
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -22,18 +30,16 @@ contract _2052Passport is ERC721Enumerable, Ownable {
 
     constructor() ERC721("2052 Passport", "205Z") {}
 
-    function verifyHash(
-        bytes32 hash,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) internal pure returns (address signer) {
-        bytes32 messageDigest = keccak256(
-            abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)
-        );
+    /*
 
-        return ecrecover(messageDigest, v, r, s);
-    }
+   __  __                  ______                 __  _                 
+  / / / /_______  _____   / ____/_  ______  _____/ /_(_)___  ____  _____
+ / / / / ___/ _ \/ ___/  / /_  / / / / __ \/ ___/ __/ / __ \/ __ \/ ___/
+/ /_/ (__  )  __/ /     / __/ / /_/ / / / / /__/ /_/ / /_/ / / / (__  ) 
+\____/____/\___/_/     /_/    \__,_/_/ /_/\___/\__/_/\____/_/ /_/____/  
+                                                                        
+
+*/
 
     function mintPassport(
         uint8 v,
@@ -41,7 +47,7 @@ contract _2052Passport is ERC721Enumerable, Ownable {
         bytes32 s
     ) public {
         uint256 _totalSupply = totalSupply();
-        require(_totalSupply < 2000);
+        require(_totalSupply + 1 <= 2000);
         require(
             !walletHasMinted[msg.sender],
             "Wallet has already minted a passport!"
@@ -58,6 +64,40 @@ contract _2052Passport is ERC721Enumerable, Ownable {
 
         _mint(msg.sender, _totalSupply);
     }
+
+
+/*
+
+    _____   __________________  _   _____    __       ________  ___   ______________________  _   _______
+   /  _/ | / /_  __/ ____/ __ \/ | / /   |  / /      / ____/ / / / | / / ____/_  __/  _/ __ \/ | / / ___/
+   / //  |/ / / / / __/ / /_/ /  |/ / /| | / /      / /_  / / / /  |/ / /     / /  / // / / /  |/ /\__ \ 
+ _/ // /|  / / / / /___/ _, _/ /|  / ___ |/ /___   / __/ / /_/ / /|  / /___  / / _/ // /_/ / /|  /___/ / 
+/___/_/ |_/ /_/ /_____/_/ |_/_/ |_/_/  |_/_____/  /_/    \____/_/ |_/\____/ /_/ /___/\____/_/ |_//____/  
+                                                                                                         
+
+*/
+
+    function verifyHash(
+        bytes32 hash,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) internal pure returns (address signer) {
+        bytes32 messageDigest = keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)
+        );
+
+        return ecrecover(messageDigest, v, r, s);
+    }
+
+    /*
+ _    ___                 ______                 __  _                 
+| |  / (_)__ _      __   / ____/_  ______  _____/ /_(_)___  ____  _____
+| | / / / _ \ | /| / /  / /_  / / / / __ \/ ___/ __/ / __ \/ __ \/ ___/
+| |/ / /  __/ |/ |/ /  / __/ / /_/ / / / / /__/ /_/ / /_/ / / / (__  ) 
+|___/_/\___/|__/|__/  /_/    \__,_/_/ /_/\___/\__/_/\____/_/ /_/____/  
+                                                                       
+*/
 
     function tokenURI(uint256 id) public view override returns (string memory) {
         require(_exists(id), "Token does not exist!");
@@ -83,30 +123,6 @@ contract _2052Passport is ERC721Enumerable, Ownable {
         return CONTRACT_URI;
     }
 
-    function setBaseURI(string memory _baseURI) public onlyOwner {
-        BASE_URI = _baseURI;
-    }
-
-    function setSigner(address _signer) public onlyOwner {
-        SIGNER = _signer;
-    }
-
-    function setContractURI(string memory _contractURI) public onlyOwner {
-        CONTRACT_URI = _contractURI;
-    }
-
-
-    /**
-     * ROYALTY FUNCTIONS
-     */
-    function updateRoyalties(address payable recipient, uint256 bps)
-        external
-        onlyOwner
-    {
-        _royaltyRecipient = recipient;
-        _royaltyBps = bps;
-    }
-    
     /**
      * @dev See {IERC165-supportsInterface}.
      */
@@ -122,12 +138,43 @@ contract _2052Passport is ERC721Enumerable, Ownable {
             interfaceId == _INTERFACE_ID_ROYALTIES_EIP2981;
     }
 
-    
     function royaltyInfo(uint256, uint256 value)
         external
         view
         returns (address, uint256)
     {
         return (_royaltyRecipient, (value * _royaltyBps) / 10000);
+    }
+
+    /*
+   ____                              ______                 __  _                 
+  / __ \_      ______  ___  _____   / ____/_  ______  _____/ /_(_)___  ____  _____
+ / / / / | /| / / __ \/ _ \/ ___/  / /_  / / / / __ \/ ___/ __/ / __ \/ __ \/ ___/
+/ /_/ /| |/ |/ / / / /  __/ /     / __/ / /_/ / / / / /__/ /_/ / /_/ / / / (__  ) 
+\____/ |__/|__/_/ /_/\___/_/     /_/    \__,_/_/ /_/\___/\__/_/\____/_/ /_/____/  
+                                                                                  
+*/
+
+    function setBaseURI(string memory _baseURI) public onlyOwner {
+        BASE_URI = _baseURI;
+    }
+
+    function setSigner(address _signer) public onlyOwner {
+        SIGNER = _signer;
+    }
+
+    function setContractURI(string memory _contractURI) public onlyOwner {
+        CONTRACT_URI = _contractURI;
+    }
+
+    /**
+     * ROYALTY FUNCTIONS
+     */
+    function updateRoyalties(address payable recipient, uint256 bps)
+        external
+        onlyOwner
+    {
+        _royaltyRecipient = recipient;
+        _royaltyBps = bps;
     }
 }
