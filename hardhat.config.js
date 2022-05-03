@@ -16,8 +16,8 @@ module.exports = {
     hardhat: {
       blockGasLimit: 29000000,
       accounts: {
-        count: 20,
-      },
+        count: 2002,
+      }
     },
     rinkeby: {
       url: `https://rinkeby.infura.io/v3/${process.env.INFURA_ID}`,
@@ -27,4 +27,7 @@ module.exports = {
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY
   },
+  mocha: {
+    timeout: 100000000
+ }
 };

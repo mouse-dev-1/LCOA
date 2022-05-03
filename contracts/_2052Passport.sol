@@ -18,7 +18,7 @@ contract _2052Passport is ERC721, Ownable {
     address public signer;
     string  public baseURI;
     string  public contractURI;
-    uint256 public nextTokenId;
+    uint256 public nextTokenId = 1;
 
     mapping(address => bool) public walletHasMinted;
 

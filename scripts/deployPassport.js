@@ -10,7 +10,7 @@ async function main() {
 
   await LCOAP.setSigner(signerPublic);
   
-  await LCOAP.updateRoyalties("0x59AF6eB470D980C7dfF9e977b87D8FdA92174860", 1000);
+  await LCOAP.updateRoyalties("0x0A020299fBCE261d059a17a5CCb9eF7981098b1E", 1000);
 
 }
 
