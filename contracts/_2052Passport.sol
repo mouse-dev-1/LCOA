@@ -50,7 +50,7 @@ contract _2052Passport is ERC721, Ownable {
         bytes32 r,
         bytes32 s
     ) external {
-        if (nextTokenId > 2000) revert MaxSupplyExceeded();
+        if (nextTokenId > 1111) revert MaxSupplyExceeded();
         if (walletHasMinted[msg.sender]) revert WalletAlreadyMinted();
         if (verifyHash(keccak256(abi.encodePacked(msg.sender)), v, r, s) != signer)
             revert SignatureNotValid();

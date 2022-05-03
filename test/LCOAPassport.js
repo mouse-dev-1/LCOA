@@ -122,7 +122,7 @@ describe("Greeter", function () {
         ).to.be.revertedWith("WalletAlreadyMinted()");
       }
 
-      if (counter == 2001 || counter == 2002) {
+      if (counter == 1112 || counter == 1113) {
         return expect(
           LCOAP.connect(signers[index]).mintPassport(sig.v, sig.r, sig.s)
         ).to.be.revertedWith("MaxSupplyExceeded()");
@@ -135,8 +135,8 @@ describe("Greeter", function () {
 
   it("Tests baseURI", async function () {
     expect(await LCOAP.tokenURI(1)).to.equal("1");
-    await LCOAP.setBaseURI("http://test.com/");
-    expect(await LCOAP.tokenURI(1)).to.equal("http://test.com/1");
+    await LCOAP.setBaseURI("https://api.lostchildren.xyz/api/passports/");
+    expect(await LCOAP.tokenURI(1)).to.equal("https://api.lostchildren.xyz/api/passports/1");
   });
 
   it("Royalty test", async function () {
