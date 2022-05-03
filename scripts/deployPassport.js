@@ -1,6 +1,5 @@
 const { ethers, waffle } = require("hardhat");
 
-var signerPublic = "0x59AF6eB470D980C7dfF9e977b87D8FdA92174860";
 
 async function main() {
   _LCOAP = await ethers.getContractFactory("_2052Passport");
@@ -8,7 +7,7 @@ async function main() {
 
   console.log(`Deployed LCOAP at address: ${LCOAP.address}`);
 
-  await LCOAP.setSigner(signerPublic);
+  await LCOAP.setSigner("0x23D885d916F2A3b50aF81e5F0A88C00F7f0c602f");
   
   await LCOAP.updateRoyalties("0x0A020299fBCE261d059a17a5CCb9eF7981098b1E", 1000);
 
