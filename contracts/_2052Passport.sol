@@ -1,4 +1,4 @@
-//SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
 /*
@@ -9,35 +9,39 @@ Written by: mousedev.eth
 
 */
 
-import "hardhat/console.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract _2052Passport is ERC721Enumerable, Ownable {
-    address public SIGNER;
+contract _2052Passport is ERC721, Ownable {
+    using Strings for uint256;
 
-    string public BASE_URI;
-
-    string public CONTRACT_URI;
+    address public signer;
+    string  public baseURI;
+    string  public contractURI;
+    uint256 public nextTokenId;
 
     mapping(address => bool) public walletHasMinted;
 
     //EIP2981
     uint256 private _royaltyBps;
-    address payable private _royaltyRecipient;
-    bytes4 private constant _INTERFACE_ID_ROYALTIES_EIP2981 = 0x2a55205a;
+    address private _royaltyRecipient;
+    bytes4  private constant _INTERFACE_ID_ROYALTIES_EIP2981 = 0x2a55205a;
+
+    //Custom errors
+    error MaxSupplyExceeded();
+    error WalletAlreadyMinted();
+    error SignatureNotValid();
 
     constructor() ERC721("2052 Passport", "205Z") {}
 
     /*
 
-   __  __                  ______                 __  _                 
+   __  __                  ______                 __  _
   / / / /_______  _____   / ____/_  ______  _____/ /_(_)___  ____  _____
  / / / / ___/ _ \/ ___/  / /_  / / / / __ \/ ___/ __/ / __ \/ __ \/ ___/
-/ /_/ (__  )  __/ /     / __/ / /_/ / / / / /__/ /_/ / /_/ / / / (__  ) 
-\____/____/\___/_/     /_/    \__,_/_/ /_/\___/\__/_/\____/_/ /_/____/  
-                                                                        
+/ /_/ (__  )  __/ /     / __/ / /_/ / / / / /__/ /_/ / /_/ / / / (__  )
+\____/____/\___/_/     /_/    \__,_/_/ /_/\___/\__/_/\____/_/ /_/____/
+
 
 */
 
@@ -45,24 +49,19 @@ contract _2052Passport is ERC721Enumerable, Ownable {
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) public {
-        uint256 _totalSupply = totalSupply();
-        require(_totalSupply + 1 <= 2000);
-        require(
-            !walletHasMinted[msg.sender],
-            "Wallet has already minted a passport!"
-        );
-
-        require(
-            verifyHash(keccak256(abi.encodePacked(msg.sender)), v, r, s) ==
-                SIGNER,
-            "Sig not valid!"
-        );
+    ) external {
+        if (nextTokenId > 2000) revert MaxSupplyExceeded();
+        if (walletHasMinted[msg.sender]) revert WalletAlreadyMinted();
+        if (verifyHash(keccak256(abi.encodePacked(msg.sender)), v, r, s) != signer)
+            revert SignatureNotValid();
 
         //Mark minted before minting.
         walletHasMinted[msg.sender] = true;
+        _mint(msg.sender, nextTokenId);
 
-        _mint(msg.sender, _totalSupply);
+        unchecked {
+            ++nextTokenId;
+        }
     }
 
 
@@ -70,10 +69,10 @@ contract _2052Passport is ERC721Enumerable, Ownable {
 
     _____   __________________  _   _____    __       ________  ___   ______________________  _   _______
    /  _/ | / /_  __/ ____/ __ \/ | / /   |  / /      / ____/ / / / | / / ____/_  __/  _/ __ \/ | / / ___/
-   / //  |/ / / / / __/ / /_/ /  |/ / /| | / /      / /_  / / / /  |/ / /     / /  / // / / /  |/ /\__ \ 
- _/ // /|  / / / / /___/ _, _/ /|  / ___ |/ /___   / __/ / /_/ / /|  / /___  / / _/ // /_/ / /|  /___/ / 
-/___/_/ |_/ /_/ /_____/_/ |_/_/ |_/_/  |_/_____/  /_/    \____/_/ |_/\____/ /_/ /___/\____/_/ |_//____/  
-                                                                                                         
+   / //  |/ / / / / __/ / /_/ /  |/ / /| | / /      / /_  / / / /  |/ / /     / /  / // / / /  |/ /\__ \
+ _/ // /|  / / / / /___/ _, _/ /|  / ___ |/ /___   / __/ / /_/ / /|  / /___  / / _/ // /_/ / /|  /___/ /
+/___/_/ |_/ /_/ /_____/_/ |_/_/ |_/_/  |_/_____/  /_/    \____/_/ |_/\____/ /_/ /___/\____/_/ |_//____/
+
 
 */
 
@@ -82,7 +81,7 @@ contract _2052Passport is ERC721Enumerable, Ownable {
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) internal pure returns (address signer) {
+    ) internal pure returns (address) {
         bytes32 messageDigest = keccak256(
             abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)
         );
@@ -91,36 +90,21 @@ contract _2052Passport is ERC721Enumerable, Ownable {
     }
 
     /*
- _    ___                 ______                 __  _                 
+ _    ___                 ______                 __  _
 | |  / (_)__ _      __   / ____/_  ______  _____/ /_(_)___  ____  _____
 | | / / / _ \ | /| / /  / /_  / / / / __ \/ ___/ __/ / __ \/ __ \/ ___/
-| |/ / /  __/ |/ |/ /  / __/ / /_/ / / / / /__/ /_/ / /_/ / / / (__  ) 
-|___/_/\___/|__/|__/  /_/    \__,_/_/ /_/\___/\__/_/\____/_/ /_/____/  
-                                                                       
+| |/ / /  __/ |/ |/ /  / __/ / /_/ / / / / /__/ /_/ / /_/ / / / (__  )
+|___/_/\___/|__/|__/  /_/    \__,_/_/ /_/\___/\__/_/\____/_/ /_/____/
+
 */
+
+    function totalSupply() public view returns (uint256) {
+        return nextTokenId - 1;
+    }
 
     function tokenURI(uint256 id) public view override returns (string memory) {
         require(_exists(id), "Token does not exist!");
-        return string(abi.encodePacked(BASE_URI, Strings.toString(id)));
-    }
-
-    function walletOfOwner(address _owner)
-        external
-        view
-        returns (uint256[] memory)
-    {
-        uint256 tokenCount = balanceOf(_owner);
-
-        uint256[] memory tokensId = new uint256[](tokenCount);
-        for (uint256 i = 0; i < tokenCount; i++) {
-            tokensId[i] = tokenOfOwnerByIndex(_owner, i);
-        }
-
-        return tokensId;
-    }
-
-    function contractURI() public view returns (string memory) {
-        return CONTRACT_URI;
+        return string(abi.encodePacked(baseURI, id.toString()));
     }
 
     /**
@@ -130,7 +114,7 @@ contract _2052Passport is ERC721Enumerable, Ownable {
         public
         view
         virtual
-        override(ERC721Enumerable)
+        override
         returns (bool)
     {
         return
@@ -147,24 +131,24 @@ contract _2052Passport is ERC721Enumerable, Ownable {
     }
 
     /*
-   ____                              ______                 __  _                 
+   ____                              ______                 __  _
   / __ \_      ______  ___  _____   / ____/_  ______  _____/ /_(_)___  ____  _____
  / / / / | /| / / __ \/ _ \/ ___/  / /_  / / / / __ \/ ___/ __/ / __ \/ __ \/ ___/
-/ /_/ /| |/ |/ / / / /  __/ /     / __/ / /_/ / / / / /__/ /_/ / /_/ / / / (__  ) 
-\____/ |__/|__/_/ /_/\___/_/     /_/    \__,_/_/ /_/\___/\__/_/\____/_/ /_/____/  
-                                                                                  
+/ /_/ /| |/ |/ / / / /  __/ /     / __/ / /_/ / / / / /__/ /_/ / /_/ / / / (__  )
+\____/ |__/|__/_/ /_/\___/_/     /_/    \__,_/_/ /_/\___/\__/_/\____/_/ /_/____/
+
 */
 
-    function setBaseURI(string memory _baseURI) public onlyOwner {
-        BASE_URI = _baseURI;
+    function setBaseURI(string calldata _baseURI) external onlyOwner {
+        baseURI = _baseURI;
     }
 
-    function setSigner(address _signer) public onlyOwner {
-        SIGNER = _signer;
+    function setSigner(address _signer) external onlyOwner {
+        signer = _signer;
     }
 
-    function setContractURI(string memory _contractURI) public onlyOwner {
-        CONTRACT_URI = _contractURI;
+    function setContractURI(string calldata _contractURI) external onlyOwner {
+        contractURI = _contractURI;
     }
 
     /**

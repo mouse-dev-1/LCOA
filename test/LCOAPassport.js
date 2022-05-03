@@ -56,12 +56,12 @@ describe("Greeter", function () {
     //Mint With wrong sig
     await expect(
       LCOAP.connect(minter1).mintPassport(sig2.v, sig2.r, sig2.s)
-    ).to.be.revertedWith("Sig not valid!");
+    ).to.be.revertedWith("SignatureNotValid()");
 
     //Mint With wrong sig
     await expect(
       LCOAP.connect(minter2).mintPassport(sig1.v, sig1.r, sig1.s)
-    ).to.be.revertedWith("Sig not valid!");
+    ).to.be.revertedWith("SignatureNotValid()");
 
     //Mint correctly
     await LCOAP.connect(minter1).mintPassport(sig1.v, sig1.r, sig1.s);
@@ -76,12 +76,12 @@ describe("Greeter", function () {
     //Mint again
     await expect(
       LCOAP.connect(minter1).mintPassport(sig1.v, sig1.r, sig1.s)
-    ).to.be.revertedWith("Wallet has already minted a passport!");
+    ).to.be.revertedWith("WalletAlreadyMinted()");
 
     //Mint again
     await expect(
       LCOAP.connect(minter2).mintPassport(sig2.v, sig2.r, sig2.s)
-    ).to.be.revertedWith("Wallet has already minted a passport!");
+    ).to.be.revertedWith("WalletAlreadyMinted()");
 
     //Transfer and attempt to mint again
     await LCOAP.connect(minter2).transferFrom(
@@ -91,7 +91,7 @@ describe("Greeter", function () {
     );
     await expect(
       LCOAP.connect(minter2).mintPassport(sig2.v, sig2.r, sig2.s)
-    ).to.be.revertedWith("Wallet has already minted a passport!");
+    ).to.be.revertedWith("WalletAlreadyMinted()");
 
   });
 
