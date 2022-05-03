@@ -112,10 +112,10 @@ describe("Greeter", function () {
 
   it("Tests max minting", async function () {
     await Promise.each(sigs, async (sig, index) => {
+      counter++;
+      console.log({ counter, index });
+      
       if (index == 0 || index == 1 || index == 2) {
-        //These already minted so increment counter as if they are minting now.
-        counter++;
-        console.log({ counter, index });
         //Expect them to have already minted.
         return expect(
           LCOAP.connect(signers[index]).mintPassport(sig.v, sig.r, sig.s)
@@ -123,18 +123,12 @@ describe("Greeter", function () {
       }
 
       if (counter == 2001 || counter == 2002) {
-        counter++;
-        console.log({ counter, index });
-        console.log(counter == 2001);
         await expect(
           LCOAP.connect(signers[index]).mintPassport(sig.v, sig.r, sig.s)
         ).to.be.revertedWith("MaxSupplyExceeded()");
 
         return
       }
-
-      counter++;
-      console.log({ counter, index });
 
       //Mint correctly
       return LCOAP.connect(signers[index]).mintPassport(sig.v, sig.r, sig.s);
