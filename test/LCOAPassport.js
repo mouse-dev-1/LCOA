@@ -142,11 +142,10 @@ describe("Greeter", function () {
   });
 
   it("Tests walletOfOwner", async function () {
-    const wallet1 = await LCOAP.walletOfOwner(signers[0].address);
-    const wallet2 = await LCOAP.walletOfOwner(signers[1].address);
-    const wallet3 = await LCOAP.walletOfOwner(signers[2].address);
-    const wallet4 = await LCOAP.walletOfOwner(signers[3].address);
-    console.log({ wallet1, wallet2, wallet3, wallet4 });
+    await Promise.each(signers, async (signer) => {
+      const wallet = await LCOAP.walletOfOwner(signer.address);
+      console.log(wallet);
+    });
   });
 
   it("Royalty test", async function () {
