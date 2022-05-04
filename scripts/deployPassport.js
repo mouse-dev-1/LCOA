@@ -13,6 +13,8 @@ async function main() {
   
   await LCOAP.setBaseURI("https://api.lostchildren.xyz/api/passports/");
 
+  await LCOAP.setContractURI("https://api.lostchildren.xyz/2052-passports-contract.json");
+
 }
 
 // We recommend this pattern to be able to use async/await everywhere
