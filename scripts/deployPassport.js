@@ -2,7 +2,7 @@ const { ethers, waffle } = require("hardhat");
 
 
 async function main() {
-  _LCOAP = await ethers.getContractFactory("_2052Passport");
+  _LCOAP = await ethers.getContractFactory("Genesis2052Passport");
   LCOAP = await _LCOAP.deploy();
 
   console.log(`Deployed LCOAP at address: ${LCOAP.address}`);

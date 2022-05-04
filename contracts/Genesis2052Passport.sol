@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 /*
 
-_2052Passport.sol
+Genesis2052Passport.sol
 
 Written by: mousedev.eth
 
@@ -12,7 +12,7 @@ Written by: mousedev.eth
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract _2052Passport is ERC721, Ownable {
+contract Genesis2052Passport is ERC721, Ownable {
     using Strings for uint256;
 
     address public signer;
@@ -32,7 +32,7 @@ contract _2052Passport is ERC721, Ownable {
     error WalletAlreadyMinted();
     error SignatureNotValid();
 
-    constructor() ERC721("2052 Passport", "205Z") {}
+    constructor() ERC721("Genesis 2052 Passport", "205Z") {}
 
     /*
 

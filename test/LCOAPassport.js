@@ -23,7 +23,7 @@ const signForPassportMint = async (passportMinter) => {
 };
 
 before(async function () {
-  _LCOAP = await ethers.getContractFactory("_2052Passport");
+  _LCOAP = await ethers.getContractFactory("Genesis2052Passport");
   LCOAP = await _LCOAP.deploy();
 
   signers = await ethers.getSigners();
