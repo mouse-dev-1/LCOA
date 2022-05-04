@@ -93,8 +93,8 @@ describe("Greeter", function () {
       LCOAP.connect(signers[2]).mintPassport(sigs[2].v, sigs[2].r, sigs[2].s)
     ).to.be.revertedWith("WalletAlreadyMinted()");
 
-    console.log(await LCOAP.ownerOf(3))
-    console.log(signers[2].address)
+    console.log(await LCOAP.ownerOf(3));
+    console.log(signers[2].address);
 
     //Transfer and attempt to mint again
     await LCOAP.connect(signers[2]).transferFrom(
@@ -113,7 +113,7 @@ describe("Greeter", function () {
   it("Tests max minting", async function () {
     await Promise.each(sigs, async (sig, index) => {
       counter++;
-      console.log({ counter, index });
+      //console.log({ counter, index });
 
       if (index == 0 || index == 1 || index == 2) {
         //Expect them to have already minted.
@@ -136,7 +136,17 @@ describe("Greeter", function () {
   it("Tests baseURI", async function () {
     expect(await LCOAP.tokenURI(1)).to.equal("1");
     await LCOAP.setBaseURI("https://api.lostchildren.xyz/api/passports/");
-    expect(await LCOAP.tokenURI(1)).to.equal("https://api.lostchildren.xyz/api/passports/1");
+    expect(await LCOAP.tokenURI(1)).to.equal(
+      "https://api.lostchildren.xyz/api/passports/1"
+    );
+  });
+
+  it("Tests walletOfOwner", async function () {
+    const wallet1 = await LCOAP.walletOfOwner(signers[0].address);
+    const wallet2 = await LCOAP.walletOfOwner(signers[1].address);
+    const wallet3 = await LCOAP.walletOfOwner(signers[2].address);
+    const wallet4 = await LCOAP.walletOfOwner(signers[3].address);
+    console.log({ wallet1, wallet2, wallet3, wallet4 });
   });
 
   it("Royalty test", async function () {

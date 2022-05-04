@@ -16,8 +16,8 @@ contract _2052Passport is ERC721, Ownable {
     using Strings for uint256;
 
     address public signer;
-    string  public baseURI;
-    string  public contractURI;
+    string public baseURI;
+    string public contractURI;
     uint256 public nextTokenId = 1;
 
     mapping(address => bool) public walletHasMinted;
@@ -25,7 +25,7 @@ contract _2052Passport is ERC721, Ownable {
     //EIP2981
     uint256 private _royaltyBps;
     address private _royaltyRecipient;
-    bytes4  private constant _INTERFACE_ID_ROYALTIES_EIP2981 = 0x2a55205a;
+    bytes4 private constant _INTERFACE_ID_ROYALTIES_EIP2981 = 0x2a55205a;
 
     //Custom errors
     error MaxSupplyExceeded();
@@ -52,8 +52,10 @@ contract _2052Passport is ERC721, Ownable {
     ) external {
         if (nextTokenId > 1111) revert MaxSupplyExceeded();
         if (walletHasMinted[msg.sender]) revert WalletAlreadyMinted();
-        if (verifyHash(keccak256(abi.encodePacked(msg.sender)), v, r, s) != signer)
-            revert SignatureNotValid();
+        if (
+            verifyHash(keccak256(abi.encodePacked(msg.sender)), v, r, s) !=
+            signer
+        ) revert SignatureNotValid();
 
         //Mark minted before minting.
         walletHasMinted[msg.sender] = true;
@@ -64,8 +66,7 @@ contract _2052Passport is ERC721, Ownable {
         }
     }
 
-
-/*
+    /*
 
     _____   __________________  _   _____    __       ________  ___   ______________________  _   _______
    /  _/ | / /_  __/ ____/ __ \/ | / /   |  / /      / ____/ / / / | / / ____/_  __/  _/ __ \/ | / / ___/
@@ -97,6 +98,28 @@ contract _2052Passport is ERC721, Ownable {
 |___/_/\___/|__/|__/  /_/    \__,_/_/ /_/\___/\__/_/\____/_/ /_/____/
 
 */
+
+    function walletOfOwner(address _address)
+        public
+        view
+        virtual
+        returns (uint256[] memory)
+    {
+        //Thanks 0xinuarashi for da inspo
+
+        uint256 _balance = balanceOf(_address);
+        uint256[] memory _tokens = new uint256[](_balance);
+        uint256 _addedTokens;
+        for (uint256 i = 1; i <= totalSupply(); i++) {
+            if (ownerOf(i) == _address) {
+                _tokens[_addedTokens] = i;
+                _addedTokens++;
+                }
+
+            if (_addedTokens == _balance) break;
+        }
+        return _tokens;
+    }
 
     function totalSupply() public view returns (uint256) {
         return nextTokenId - 1;
