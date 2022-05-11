@@ -41,7 +41,7 @@ contract CYNQUE is ERC721, Ownable {
     error NotOwnerOfPassport();
     error NotEnoughEtherSent();
 
-    constructor() ERC721("CYNQUE", "CYNQUE") {}
+    constructor() ERC721("Lost Children of Andromeda - CYNQUE Prototype", "CYNQUE") {}
 
     /*
 
