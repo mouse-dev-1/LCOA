@@ -25,8 +25,7 @@ contract CYNQUE is ERC721, Ownable {
 
     address public passportAddress;
 
-    mapping(uint256 => bool) public passportHasMinted;
-    mapping(uint256 => uint256) public passportFromCynqueId;
+    mapping(uint256 => uint256) public cynqueOf;
 
     //EIP2981
     uint256 private _royaltyBps;
@@ -76,7 +75,7 @@ contract CYNQUE is ERC721, Ownable {
         if (IERC721(passportAddress).ownerOf(passportId) != msg.sender)
             revert NotOwnerOfPassport();
 
-        //Set which passport the cynque belong to
+        //Set which cynque the passport belong to
         cynqueOf[passportId] = nextTokenId+1;
         
         //Call internal method
