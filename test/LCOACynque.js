@@ -36,7 +36,9 @@ before(async function () {
   _CYNQUE = await ethers.getContractFactory("CYNQUE");
   CYNQUE = await _CYNQUE.deploy();
 
-  signers = await ethers.getSigners();
+  signers = (await ethers.getSigners()).slice(0, 10);
+
+  allowlistWallets = (await ethers.getSigners()).slice(10, 50);
 
   sigs = await Promise.map(signers, (signer) =>
     signForPassportMint(signer.address)
@@ -65,17 +67,21 @@ describe("Greeter", function () {
     });
   });
 
-  it("Team mints", async function () {
-    await CYNQUE.teamMint();
+  it("Allowlist testing", async function () {
+    await CYNQUE.setCynqueAllowlist(allowlistWallets.map((a) => a.address));
 
-    expect(await CYNQUE.totalSupply()).to.equal(40);
-    expect(await CYNQUE.balanceOf(signers[0].address)).to.equal(40);
-  });
+    await Promise.each(allowlistWallets, async (wallet) => {
+      expect(await CYNQUE.addressToAllowlistStatus(wallet.address)).to.equal(1);
 
-  it("Team mints but fails", async function () {
-    await expect(CYNQUE.teamMint()).to.be.revertedWith(
-      "TeamMintAlreadyDone"
-    );
+      await CYNQUE.connect(wallet).mintCynqueAsAllowlist();
+
+      expect(await CYNQUE.addressToAllowlistStatus(wallet.address)).to.equal(2);
+
+      await expect(
+        CYNQUE.connect(wallet).mintCynqueAsAllowlist()
+      ).to.be.revertedWith("UserHasAlreadyMintedAllowlist");
+    });
+
   });
 
   it("Mints cynques with wrong passportIds", async function () {
@@ -144,16 +150,90 @@ describe("Greeter", function () {
 
   it("Tests walletOfOwner", async function () {
     await Promise.each(signers, async (signer, index) => {
-      const wallet = await CYNQUE.walletOfOwner(signer.address);
+      const walletOfOwner = await CYNQUE.walletOfOwner(signer.address);
 
-      if (index == 0) {
-        //Owner, minted 40 and then 2
-        expect(wallet.length).to.equal(42);
-      } else {
-        //Not owner, minted 2
-        expect(wallet.length).to.equal(2);
-      }
+      expect(walletOfOwner.length).to.equal(2);
     });
+
+    await Promise.each(allowlistWallets, async (wallet, index) => {
+      const walletOfOwner = await CYNQUE.walletOfOwner(wallet.address);
+
+      expect(walletOfOwner.length).to.equal(1);
+    });
+  });
+
+  it("Tests cynqueronize", async function () {
+    const walletOne = signers[0];
+    const walletTwo = signers[1];
+
+    //Get the first passport of wallet one
+    const passportOfWalletOne = (
+      await LCOAP.walletOfOwner(walletOne.address)
+    )[0];
+    //Get the first passport of wallet two
+    const passportOfWalletTwo = (
+      await LCOAP.walletOfOwner(walletTwo.address)
+    )[0];
+
+    //Get the first cynque of wallet one
+    const cynqueOfWalletOne = (
+      await CYNQUE.walletOfOwner(walletOne.address)
+    )[0];
+    //Get the first cynque of wallet two
+    const cynqueOfWalletTwo = (
+      await CYNQUE.walletOfOwner(walletTwo.address)
+    )[0];
+
+    //Get the cynque that the passport is synced with
+    var passportToCynqueOfWalletOne = await CYNQUE.passportToCynque(
+      passportOfWalletOne
+    );
+
+    //Get the cynque that the passport is synced with
+    var passportToCynqueOfWalletTwo = await CYNQUE.passportToCynque(
+      passportOfWalletTwo
+    );
+
+    //Ensure the passports are connected to these cynques.
+    expect(passportToCynqueOfWalletOne).to.equal(cynqueOfWalletOne);
+    expect(passportToCynqueOfWalletTwo).to.equal(cynqueOfWalletTwo);
+
+    //Send cynques between themselves
+    await CYNQUE.connect(walletOne).transferFrom(
+      walletOne.address,
+      walletTwo.address,
+      cynqueOfWalletOne
+    );
+    await CYNQUE.connect(walletTwo).transferFrom(
+      walletTwo.address,
+      walletOne.address,
+      cynqueOfWalletTwo
+    );
+
+    //Sync passport to new cynque
+    await CYNQUE.connect(walletOne).cynqueronize(
+      passportOfWalletOne,
+      cynqueOfWalletTwo
+    );
+
+    //Sync passport to new cynque
+    await CYNQUE.connect(walletTwo).cynqueronize(
+      passportOfWalletTwo,
+      cynqueOfWalletOne
+    );
+
+    //Get the cynque this passport is cynqued with
+    var passportToCynqueOfWalletOne = await CYNQUE.passportToCynque(
+      passportOfWalletOne
+    );
+    //Get the cynque this passport is cynqued with
+    var passportToCynqueOfWalletTwo = await CYNQUE.passportToCynque(
+      passportOfWalletTwo
+    );
+
+    //Ensure it was the transferred cynque.
+    expect(passportToCynqueOfWalletOne).to.equal(cynqueOfWalletTwo);
+    expect(passportToCynqueOfWalletTwo).to.equal(cynqueOfWalletOne);
   });
 
   it("Royalty test", async function () {

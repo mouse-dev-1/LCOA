@@ -25,8 +25,15 @@ contract CYNQUE is ERC721, Ownable {
 
     address public passportAddress;
 
+    mapping(address => uint8) public addressToAllowlistStatus;
+    //0 not allowlisted
+    //1 allowlisted
+    //2 minted allowlist
+
     mapping(uint256 => bool) public passportHasMinted;
+
     mapping(uint256 => uint256) public passportToCynque;
+    mapping(uint256 => uint256) public cynqueToPassport;
 
     //EIP2981
     uint256 private _royaltyBps;
@@ -37,14 +44,18 @@ contract CYNQUE is ERC721, Ownable {
     error PassportSaleNotLive();
     error PublicSaleNotLive();
     error NotOwnerOfCynque();
-    error TeamMintAlreadyDone();
+
+    error UserIsNotAllowlisted();
+    error UserHasAlreadyMintedAllowlist();
 
     error MaxSupplyExceeded();
     error PassportAlreadyMinted();
     error NotOwnerOfPassport();
     error NotEnoughEtherSent();
 
-    constructor() ERC721("Lost Children of Andromeda - CYNQUE Prototype", "CYNQUE") {}
+    constructor()
+        ERC721("Lost Children of Andromeda - CYNQUE Prototype", "CYNQUE")
+    {}
 
     /*
 
@@ -56,6 +67,26 @@ contract CYNQUE is ERC721, Ownable {
 
 
 */
+
+    function setCynqueAllowlist(address[] memory addresses) external onlyOwner {
+        for (uint256 i = 0; i < addresses.length; i++) {
+            addressToAllowlistStatus[addresses[i]] = 1;
+        }
+    }
+
+    function mintCynqueAsAllowlist() external {
+        if (addressToAllowlistStatus[msg.sender] == 0)
+            revert UserIsNotAllowlisted();
+        if (addressToAllowlistStatus[msg.sender] == 2)
+            revert UserHasAlreadyMintedAllowlist();
+
+        if (nextTokenId > 1111) revert MaxSupplyExceeded();
+
+        addressToAllowlistStatus[msg.sender] = 2;
+
+        //Call internal method
+        mintCynque();
+    }
 
     function mintCynqueWithoutPassport() external payable {
         //Require cynque sale has started
@@ -90,17 +121,13 @@ contract CYNQUE is ERC721, Ownable {
             //Mark minted before minting.
             passportHasMinted[passportIds[i]] = true;
 
-            passportToCynque[passportIds[i]] == nextTokenId;
+            //Store that this passport is connected to the next cynque
+            passportToCynque[passportIds[i]] = nextTokenId;
+
+            //Store that the next cynque is connected to this passport
+            cynqueToPassport[nextTokenId] = passportIds[i];
 
             //Call internal method
-            mintCynque();
-        }
-    }
-
-    function teamMint() external onlyOwner {
-        if (nextTokenId > 1) revert TeamMintAlreadyDone();
-
-        for (uint256 i = 0; i < 40; i++) {
             mintCynque();
         }
     }
@@ -113,12 +140,16 @@ contract CYNQUE is ERC721, Ownable {
         //Make sure they own this passport
         if (ownerOf(cynqueId) != msg.sender) revert NotOwnerOfCynque();
 
+        //Store that this passport is connected to this cynque.
         passportToCynque[passportId] = cynqueId;
+
+        //Store that this cynque is connected to this passport.
+        cynqueToPassport[cynqueId] = passportId;
     }
 
     function mintCynque() internal {
         //Require under max supply
-        if (nextTokenId > 1111) revert MaxSupplyExceeded();
+        if (nextTokenId > 1071) revert MaxSupplyExceeded();
 
         _mint(msg.sender, nextTokenId);
 
@@ -223,6 +254,13 @@ contract CYNQUE is ERC721, Ownable {
         onlyOwner
     {
         publicSaleStartTime = _publicSaleStartTime;
+    }
+
+    function withdraw() public onlyOwner {
+        (bool succ, ) = payable(msg.sender).call{value: address(this).balance}(
+            ""
+        );
+        require(succ, "transfer failed");
     }
 
     /**
