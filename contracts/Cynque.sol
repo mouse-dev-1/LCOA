@@ -26,6 +26,7 @@ contract CYNQUE is ERC721, Ownable {
     address public passportAddress;
 
     mapping(uint256 => bool) public passportHasMinted;
+    mapping(uint256 => uint256) public passportFromCynqueId;
 
     //EIP2981
     uint256 private _royaltyBps;
@@ -68,18 +69,19 @@ contract CYNQUE is ERC721, Ownable {
             revert PassportSaleNotLive();
 
         //Require this passport hasn't minted
-        if (passportHasMinted[passportId] == true)
+        if (cynqueOf[passportId] > 0)
             revert PassportAlreadyMinted();
 
         //Make sure they own this passport
         if (IERC721(passportAddress).ownerOf(passportId) != msg.sender)
             revert NotOwnerOfPassport();
 
-        //Mark minted before minting.
-        passportHasMinted[passportId] = true;
-
+        //Set which passport the cynque belong to
+        cynqueOf[passportId] = nextTokenId+1;
+        
         //Call internal method
         mintCynque();
+
     }
 
     function mintCynque() internal {
