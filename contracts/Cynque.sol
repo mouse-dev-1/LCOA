@@ -25,7 +25,7 @@ contract CYNQUE is ERC721, Ownable {
 
     address public passportAddress;
 
-    mapping(uint256 => uint256) public cynqueOf;
+    mapping(uint256 => uint256) public cynqueOfPassport;
 
     //EIP2981
     uint256 private _royaltyBps;
@@ -68,7 +68,7 @@ contract CYNQUE is ERC721, Ownable {
             revert PassportSaleNotLive();
 
         //Require this passport hasn't minted
-        if (cynqueOf[passportId] > 0)
+        if (cynqueOfPassport[passportId] > 0)
             revert PassportAlreadyMinted();
 
         //Make sure they own this passport
@@ -76,7 +76,7 @@ contract CYNQUE is ERC721, Ownable {
             revert NotOwnerOfPassport();
 
         //Set which cynque the passport belong to
-        cynqueOf[passportId] = nextTokenId+1;
+        cynqueOfPassport[passportId] = nextTokenId+1;
         
         //Call internal method
         mintCynque();
@@ -134,6 +134,10 @@ contract CYNQUE is ERC721, Ownable {
     function tokenURI(uint256 id) public view override returns (string memory) {
         require(_exists(id), "Token does not exist!");
         return string(abi.encodePacked(baseURI, id.toString()));
+    }
+    function cynqueOf(uint passportId) public view returns (uint cynqueId) {
+        require((cynqueOfPassport[passportId] > 0), "Token does not exist!");
+        return cynqueOfPassport[passportId];
     }
 
     /**
