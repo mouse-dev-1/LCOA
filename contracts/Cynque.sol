@@ -26,6 +26,7 @@ contract CYNQUE is ERC721, Ownable {
     address public passportAddress;
 
     mapping(uint256 => bool) public passportHasMinted;
+    mapping(uint256 => uint256) public passportToCynque;
 
     //EIP2981
     uint256 private _royaltyBps;
@@ -35,6 +36,8 @@ contract CYNQUE is ERC721, Ownable {
     //Custom errors
     error PassportSaleNotLive();
     error PublicSaleNotLive();
+    error NotOwnerOfCynque();
+    error TeamMintAlreadyDone();
 
     error MaxSupplyExceeded();
     error PassportAlreadyMinted();
@@ -58,35 +61,64 @@ contract CYNQUE is ERC721, Ownable {
         //Require cynque sale has started
         if (block.timestamp < publicSaleStartTime) revert PassportSaleNotLive();
 
+        if (msg.value < 0.22 ether) revert NotEnoughEtherSent();
+
         //Call internal method
         mintCynque();
     }
 
-    function mintCynqueWithPassport(uint256 passportId) external payable {
+    function mintCynqueWithPassports(uint256[] memory passportIds)
+        external
+        payable
+    {
         //Require cynque sale has started
         if (block.timestamp < passportSaleStartTime)
             revert PassportSaleNotLive();
 
-        //Require this passport hasn't minted
-        if (passportHasMinted[passportId] == true)
-            revert PassportAlreadyMinted();
+        if (msg.value < (0.22 ether * passportIds.length))
+            revert NotEnoughEtherSent();
 
+        for (uint256 i = 0; i < passportIds.length; i++) {
+            //Require this passport hasn't minted
+            if (passportHasMinted[passportIds[i]] == true)
+                revert PassportAlreadyMinted();
+
+            //Make sure they own this passport
+            if (IERC721(passportAddress).ownerOf(passportIds[i]) != msg.sender)
+                revert NotOwnerOfPassport();
+
+            //Mark minted before minting.
+            passportHasMinted[passportIds[i]] = true;
+
+            passportToCynque[passportIds[i]] == nextTokenId;
+
+            //Call internal method
+            mintCynque();
+        }
+    }
+
+    function teamMint() external onlyOwner {
+        if (nextTokenId > 1) revert TeamMintAlreadyDone();
+
+        for (uint256 i = 0; i < 40; i++) {
+            mintCynque();
+        }
+    }
+
+    function cynqueronize(uint256 passportId, uint256 cynqueId) external {
         //Make sure they own this passport
         if (IERC721(passportAddress).ownerOf(passportId) != msg.sender)
             revert NotOwnerOfPassport();
 
-        //Mark minted before minting.
-        passportHasMinted[passportId] = true;
+        //Make sure they own this passport
+        if (ownerOf(cynqueId) != msg.sender) revert NotOwnerOfCynque();
 
-        //Call internal method
-        mintCynque();
+        passportToCynque[passportId] = cynqueId;
     }
 
     function mintCynque() internal {
         //Require under max supply
         if (nextTokenId > 1111) revert MaxSupplyExceeded();
-
-        if (msg.value < 0.22 ether) revert NotEnoughEtherSent();
 
         _mint(msg.sender, nextTokenId);
 

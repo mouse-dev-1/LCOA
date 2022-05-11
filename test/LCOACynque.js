@@ -65,15 +65,28 @@ describe("Greeter", function () {
     });
   });
 
+  it("Team mints", async function () {
+    await CYNQUE.teamMint();
+
+    expect(await CYNQUE.totalSupply()).to.equal(40);
+    expect(await CYNQUE.balanceOf(signers[0].address)).to.equal(40);
+  });
+
+  it("Team mints but fails", async function () {
+    await expect(CYNQUE.teamMint()).to.be.revertedWith(
+      "TeamMintAlreadyDone"
+    );
+  });
+
   it("Mints cynques with wrong passportIds", async function () {
     await Promise.each(sigs, async (sig, index) => {
       const wallet = await LCOAP.walletOfOwner(signers[index].address);
 
       await expect(
-        CYNQUE.connect(signers[index]).mintCynqueWithPassport(
+        CYNQUE.connect(signers[index]).mintCynqueWithPassports(
           parseInt(wallet[0]) + 2 < 10
-            ? parseInt(wallet[0]) + 2
-            : parseInt(wallet[0]) - 2,
+            ? [parseInt(wallet[0]) + 2]
+            : [parseInt(wallet[0]) - 2],
           sendEth("0.22")
         )
       ).to.be.revertedWith("NotOwnerOfPassport");
@@ -83,8 +96,8 @@ describe("Greeter", function () {
   it("Mints cynques with passports", async function () {
     await Promise.each(sigs, async (sig, index) => {
       const wallet = await LCOAP.walletOfOwner(signers[index].address);
-      await CYNQUE.connect(signers[index]).mintCynqueWithPassport(
-        wallet[0],
+      await CYNQUE.connect(signers[index]).mintCynqueWithPassports(
+        [wallet[0]],
         sendEth("0.22")
       );
     });
@@ -94,28 +107,32 @@ describe("Greeter", function () {
     await Promise.each(sigs, async (sig, index) => {
       const wallet = await LCOAP.walletOfOwner(signers[index].address);
       await expect(
-        CYNQUE.connect(signers[index]).mintCynqueWithPassport(
-          wallet[0],
+        CYNQUE.connect(signers[index]).mintCynqueWithPassports(
+          [wallet[0]],
           sendEth("0.22")
         )
       ).to.be.revertedWith("PassportAlreadyMinted");
     });
   });
 
-  it("Mints cynques without passports and fails", async function (){
+  it("Mints cynques without passports and fails", async function () {
     await Promise.each(sigs, async (sig, index) => {
-      await expect(CYNQUE.connect(signers[index]).mintCynqueWithoutPassport(sendEth("0.22"))).to.be.revertedWith("PassportSaleNotLive");
+      await expect(
+        CYNQUE.connect(signers[index]).mintCynqueWithoutPassport(
+          sendEth("0.22")
+        )
+      ).to.be.revertedWith("PassportSaleNotLive");
     });
-  })
+  });
 
-  it("Increase public sale time and mints cynques without passports", async function (){
-    await network.provider.send("evm_increaseTime", [100000000000])
-    await network.provider.send("evm_mine")
+  it("Increase public sale time and mints cynques without passports", async function () {
+    await network.provider.send("evm_increaseTime", [100000000000]);
+    await network.provider.send("evm_mine");
 
     await Promise.each(sigs, async (sig, index) => {
-      CYNQUE.connect(signers[index]).mintCynqueWithoutPassport(sendEth("0.22"))
+      CYNQUE.connect(signers[index]).mintCynqueWithoutPassport(sendEth("0.22"));
     });
-  })
+  });
 
   it("Tests baseURI", async function () {
     expect(await CYNQUE.tokenURI(1)).to.equal("1");
@@ -126,9 +143,16 @@ describe("Greeter", function () {
   });
 
   it("Tests walletOfOwner", async function () {
-    await Promise.each(signers, async (signer) => {
+    await Promise.each(signers, async (signer, index) => {
       const wallet = await CYNQUE.walletOfOwner(signer.address);
-      expect(wallet.length).to.equal(2);
+
+      if (index == 0) {
+        //Owner, minted 40 and then 2
+        expect(wallet.length).to.equal(42);
+      } else {
+        //Not owner, minted 2
+        expect(wallet.length).to.equal(2);
+      }
     });
   });
 
