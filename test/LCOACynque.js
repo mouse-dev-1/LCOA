@@ -38,8 +38,6 @@ before(async function () {
 
   signers = (await ethers.getSigners()).slice(0, 10);
 
-  allowlistWallets = (await ethers.getSigners()).slice(10, 50);
-
   sigs = await Promise.map(signers, (signer) =>
     signForPassportMint(signer.address)
   );
@@ -48,10 +46,11 @@ before(async function () {
 
   await CYNQUE.setPassportAddress(LCOAP.address);
   await CYNQUE.setPublicSaleStartTime(100000000000);
+  await CYNQUE.setPassportSaleStartTime(0);
 });
 
 describe("Greeter", function () {
-  it("Permission checking", async function () {
+  it("Permission checking cynques", async function () {
     await expect(CYNQUE.connect(signers[1]).setBaseURI("")).to.be.revertedWith(
       "Ownable: caller is not the owner"
     );
@@ -60,28 +59,25 @@ describe("Greeter", function () {
     ).to.be.revertedWith("Ownable: caller is not the owner");
   });
 
-  it("Tests max minting", async function () {
+  it("Tests max passport minting", async function () {
     await Promise.each(sigs, async (sig, index) => {
       //Mint correctly
       return LCOAP.connect(signers[index]).mintPassport(sig.v, sig.r, sig.s);
     });
   });
 
-  it("Allowlist testing", async function () {
-    await CYNQUE.setCynqueAllowlist(allowlistWallets.map((a) => a.address));
 
-    await Promise.each(allowlistWallets, async (wallet) => {
-      expect(await CYNQUE.addressToAllowlistStatus(wallet.address)).to.equal(1);
+  it("Team mints cynques", async function () {
+    await CYNQUE.teamMint();
 
-      await CYNQUE.connect(wallet).mintCynqueAsAllowlist();
+    expect(await CYNQUE.totalSupply()).to.equal(40);
+    expect(await CYNQUE.balanceOf(signers[0].address)).to.equal(40);
+  });
 
-      expect(await CYNQUE.addressToAllowlistStatus(wallet.address)).to.equal(2);
-
-      await expect(
-        CYNQUE.connect(wallet).mintCynqueAsAllowlist()
-      ).to.be.revertedWith("UserHasAlreadyMintedAllowlist");
-    });
-
+  it("Team mints cynques but fails", async function () {
+    await expect(CYNQUE.teamMint()).to.be.revertedWith(
+      "TeamMintAlreadyDone"
+    );
   });
 
   it("Mints cynques with wrong passportIds", async function () {
@@ -93,7 +89,7 @@ describe("Greeter", function () {
           parseInt(wallet[0]) + 2 < 10
             ? [parseInt(wallet[0]) + 2]
             : [parseInt(wallet[0]) - 2],
-          sendEth("0.22")
+          sendEth("0.2")
         )
       ).to.be.revertedWith("NotOwnerOfPassport");
     });
@@ -104,7 +100,7 @@ describe("Greeter", function () {
       const wallet = await LCOAP.walletOfOwner(signers[index].address);
       await CYNQUE.connect(signers[index]).mintCynqueWithPassports(
         [wallet[0]],
-        sendEth("0.22")
+        sendEth("0.2")
       );
     });
   });
@@ -115,7 +111,7 @@ describe("Greeter", function () {
       await expect(
         CYNQUE.connect(signers[index]).mintCynqueWithPassports(
           [wallet[0]],
-          sendEth("0.22")
+          sendEth("0.2")
         )
       ).to.be.revertedWith("PassportAlreadyMinted");
     });
@@ -125,7 +121,7 @@ describe("Greeter", function () {
     await Promise.each(sigs, async (sig, index) => {
       await expect(
         CYNQUE.connect(signers[index]).mintCynqueWithoutPassport(
-          sendEth("0.22")
+          sendEth("0.2")
         )
       ).to.be.revertedWith("PassportSaleNotLive");
     });
@@ -136,7 +132,7 @@ describe("Greeter", function () {
     await network.provider.send("evm_mine");
 
     await Promise.each(sigs, async (sig, index) => {
-      CYNQUE.connect(signers[index]).mintCynqueWithoutPassport(sendEth("0.22"));
+      CYNQUE.connect(signers[index]).mintCynqueWithoutPassport(sendEth("0.2"));
     });
   });
 
@@ -152,19 +148,19 @@ describe("Greeter", function () {
     await Promise.each(signers, async (signer, index) => {
       const walletOfOwner = await CYNQUE.walletOfOwner(signer.address);
 
-      expect(walletOfOwner.length).to.equal(2);
-    });
-
-    await Promise.each(allowlistWallets, async (wallet, index) => {
-      const walletOfOwner = await CYNQUE.walletOfOwner(wallet.address);
-
-      expect(walletOfOwner.length).to.equal(1);
+      if (index == 0) {
+        //Owner, minted 40 and then 2
+        expect(walletOfOwner.length).to.equal(42);
+      } else {
+        //Not owner, minted 2
+        expect(walletOfOwner.length).to.equal(2);
+      }
     });
   });
 
   it("Tests cynqueronize", async function () {
-    const walletOne = signers[0];
-    const walletTwo = signers[1];
+    const walletOne = signers[1];
+    const walletTwo = signers[2];
 
     //Get the first passport of wallet one
     const passportOfWalletOne = (
@@ -243,4 +239,8 @@ describe("Greeter", function () {
     expect(royaltyAmount[0]).to.equal(signers[1].address);
     expect(royaltyAmount[1]).to.deep.equal(ethers.BigNumber.from(100));
   });
+
+  it("Withdrawals Ether", async function(){
+    await CYNQUE.withdraw();
+  })
 });

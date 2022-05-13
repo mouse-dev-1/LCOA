@@ -25,11 +25,6 @@ contract CYNQUE is ERC721, Ownable {
 
     address public passportAddress;
 
-    mapping(address => uint8) public addressToAllowlistStatus;
-    //0 not allowlisted
-    //1 allowlisted
-    //2 minted allowlist
-
     mapping(uint256 => bool) public passportHasMinted;
 
     mapping(uint256 => uint256) public passportToCynque;
@@ -44,9 +39,7 @@ contract CYNQUE is ERC721, Ownable {
     error PassportSaleNotLive();
     error PublicSaleNotLive();
     error NotOwnerOfCynque();
-
-    error UserIsNotAllowlisted();
-    error UserHasAlreadyMintedAllowlist();
+    error TeamMintAlreadyDone();
 
     error MaxSupplyExceeded();
     error PassportAlreadyMinted();
@@ -68,31 +61,20 @@ contract CYNQUE is ERC721, Ownable {
 
 */
 
-    function setCynqueAllowlist(address[] memory addresses) external onlyOwner {
-        for (uint256 i = 0; i < addresses.length; i++) {
-            addressToAllowlistStatus[addresses[i]] = 1;
+
+    function teamMint() external onlyOwner {
+        if (nextTokenId > 1) revert TeamMintAlreadyDone();
+
+        for (uint256 i = 0; i < 40; i++) {
+            mintCynque();
         }
-    }
-
-    function mintCynqueAsAllowlist() external {
-        if (addressToAllowlistStatus[msg.sender] == 0)
-            revert UserIsNotAllowlisted();
-        if (addressToAllowlistStatus[msg.sender] == 2)
-            revert UserHasAlreadyMintedAllowlist();
-
-        if (nextTokenId > 1111) revert MaxSupplyExceeded();
-
-        addressToAllowlistStatus[msg.sender] = 2;
-
-        //Call internal method
-        mintCynque();
     }
 
     function mintCynqueWithoutPassport() external payable {
         //Require cynque sale has started
         if (block.timestamp < publicSaleStartTime) revert PassportSaleNotLive();
 
-        if (msg.value < 0.22 ether) revert NotEnoughEtherSent();
+        if (msg.value < 0.2 ether) revert NotEnoughEtherSent();
 
         //Call internal method
         mintCynque();
@@ -106,7 +88,7 @@ contract CYNQUE is ERC721, Ownable {
         if (block.timestamp < passportSaleStartTime)
             revert PassportSaleNotLive();
 
-        if (msg.value < (0.22 ether * passportIds.length))
+        if (msg.value < (0.2 ether * passportIds.length))
             revert NotEnoughEtherSent();
 
         for (uint256 i = 0; i < passportIds.length; i++) {
@@ -149,7 +131,7 @@ contract CYNQUE is ERC721, Ownable {
 
     function mintCynque() internal {
         //Require under max supply
-        if (nextTokenId > 1071) revert MaxSupplyExceeded();
+        if (nextTokenId > 1111) revert MaxSupplyExceeded();
 
         _mint(msg.sender, nextTokenId);
 
@@ -242,7 +224,7 @@ contract CYNQUE is ERC721, Ownable {
         passportAddress = _passportAddress;
     }
 
-    function setCynqueSaleStartTime(uint256 _passportSaleStartTime)
+    function setPassportSaleStartTime(uint256 _passportSaleStartTime)
         external
         onlyOwner
     {
