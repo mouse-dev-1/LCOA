@@ -114,7 +114,7 @@ contract CYNQUE is ERC721, Ownable {
         }
     }
 
-    function cynqueronize(uint256 passportId, uint256 cynqueId) external {
+    function cynqueronize(uint256 passportId, uint256 cynqueTokenId) external {
         //Make sure they own this passport
         if (IERC721(passportAddress).ownerOf(passportId) != msg.sender)
             revert NotOwnerOfPassport();
