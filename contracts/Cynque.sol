@@ -120,13 +120,13 @@ contract CYNQUE is ERC721, Ownable {
             revert NotOwnerOfPassport();
 
         //Make sure they own this passport
-        if (ownerOf(cynqueId) != msg.sender) revert NotOwnerOfCynque();
+        if (ownerOf(cynqueTokenId) != msg.sender) revert NotOwnerOfCynque();
 
         //Store that this passport is connected to this cynque.
-        passportToCynque[passportId] = cynqueId;
+        passportToCynque[passportId] = cynqueTokenId;
 
         //Store that this cynque is connected to this passport.
-        cynqueToPassport[cynqueId] = passportId;
+        cynqueToPassport[cynqueTokenId] = passportId;
     }
 
     function mintCynque() internal {
