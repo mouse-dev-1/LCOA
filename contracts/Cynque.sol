@@ -22,6 +22,7 @@ contract CYNQUE is ERC721, Ownable {
 
     uint256 public passportSaleStartTime;
     uint256 public publicSaleStartTime;
+    uint256 public publicSaleEndTime;
 
     address public passportAddress;
 
@@ -29,6 +30,8 @@ contract CYNQUE is ERC721, Ownable {
 
     mapping(uint256 => uint256) public passportToCynque;
     mapping(uint256 => uint256) public cynqueToPassport;
+
+    mapping(address => uint256) public quantityOfPublicMinted;
 
     //EIP2981
     uint256 private _royaltyBps;
@@ -40,6 +43,7 @@ contract CYNQUE is ERC721, Ownable {
     error PublicSaleNotLive();
     error NotOwnerOfCynque();
     error TeamMintAlreadyDone();
+    error MaxMintedOnPublicSale();
 
     error MaxSupplyExceeded();
     error PassportAlreadyMinted();
@@ -61,20 +65,19 @@ contract CYNQUE is ERC721, Ownable {
 
 */
 
-
-    function teamMint() external onlyOwner {
-        if (nextTokenId > 1) revert TeamMintAlreadyDone();
-
-        for (uint256 i = 0; i < 40; i++) {
-            mintCynque();
-        }
-    }
-
     function mintCynqueWithoutPassport() external payable {
         //Require cynque sale has started
-        if (block.timestamp < publicSaleStartTime) revert PassportSaleNotLive();
+        if (
+            block.timestamp < publicSaleStartTime ||
+            block.timestamp > publicSaleEndTime
+        ) revert PassportSaleNotLive();
 
-        if (msg.value < 0.2 ether) revert NotEnoughEtherSent();
+        if(quantityOfPublicMinted[msg.sender] + 1 > 2) revert MaxMintedOnPublicSale();
+
+        if (msg.value < 0.3333 ether) revert NotEnoughEtherSent();
+
+        
+        quantityOfPublicMinted[msg.sender]++;
 
         //Call internal method
         mintCynque();
@@ -88,7 +91,7 @@ contract CYNQUE is ERC721, Ownable {
         if (block.timestamp < passportSaleStartTime)
             revert PassportSaleNotLive();
 
-        if (msg.value < (0.2 ether * passportIds.length))
+        if (msg.value < (0.2222 ether * passportIds.length))
             revert NotEnoughEtherSent();
 
         for (uint256 i = 0; i < passportIds.length; i++) {
@@ -212,6 +215,20 @@ contract CYNQUE is ERC721, Ownable {
 
 */
 
+    function communitySweep(uint256 _quantity) external onlyOwner {
+        for (uint256 i = 0; i < _quantity; i++) {
+            mintCynque();
+        }
+    }
+
+    function teamMint() external onlyOwner {
+        if (nextTokenId > 1) revert TeamMintAlreadyDone();
+
+        for (uint256 i = 0; i < 40; i++) {
+            mintCynque();
+        }
+    }
+
     function setBaseURI(string calldata _baseURI) external onlyOwner {
         baseURI = _baseURI;
     }
@@ -231,11 +248,12 @@ contract CYNQUE is ERC721, Ownable {
         passportSaleStartTime = _passportSaleStartTime;
     }
 
-    function setPublicSaleStartTime(uint256 _publicSaleStartTime)
-        external
-        onlyOwner
-    {
+    function setPublicSaleTimes(
+        uint256 _publicSaleStartTime,
+        uint256 _publicSaleEndTime
+    ) external onlyOwner {
         publicSaleStartTime = _publicSaleStartTime;
+        publicSaleEndTime = _publicSaleEndTime;
     }
 
     function withdraw() public onlyOwner {
