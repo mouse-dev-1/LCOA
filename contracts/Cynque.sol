@@ -75,7 +75,6 @@ contract CYNQUE is ERC721, Ownable {
         if(quantityOfPublicMinted[msg.sender] + 1 > 2) revert MaxMintedOnPublicSale();
 
         if (msg.value < 0.3333 ether) revert NotEnoughEtherSent();
-
         
         quantityOfPublicMinted[msg.sender]++;
 
@@ -224,7 +223,7 @@ contract CYNQUE is ERC721, Ownable {
     function teamMint() external onlyOwner {
         if (nextTokenId > 1) revert TeamMintAlreadyDone();
 
-        for (uint256 i = 0; i < 40; i++) {
+        for (uint256 i = 0; i < 64; i++) {
             mintCynque();
         }
     }

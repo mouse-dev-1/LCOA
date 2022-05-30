@@ -69,8 +69,8 @@ describe("Tests", function () {
   it("Team mints cynques", async function () {
     await CYNQUE.teamMint();
 
-    expect(await CYNQUE.totalSupply()).to.equal(40);
-    expect(await CYNQUE.balanceOf(signers[0].address)).to.equal(40);
+    expect(await CYNQUE.totalSupply()).to.equal(64);
+    expect(await CYNQUE.balanceOf(signers[0].address)).to.equal(64);
   });
 
   it("Team mints cynques but fails", async function () {
@@ -159,8 +159,8 @@ describe("Tests", function () {
       const walletOfOwner = await CYNQUE.walletOfOwner(signer.address);
 
       if (index == 0) {
-        //Owner, minted 40 and then 2 public, 1 passport
-        expect(walletOfOwner.length).to.equal(43);
+        //Owner, minted 64 and then 2 public, 1 passport
+        expect(walletOfOwner.length).to.equal(67);
       } else {
         //Not owner, minted 2 public, 1 passport
         expect(walletOfOwner.length).to.equal(3);
