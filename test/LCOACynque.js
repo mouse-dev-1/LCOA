@@ -117,7 +117,7 @@ describe("Tests", function () {
   it("Mints cynques without passports and fails", async function () {
     await Promise.each(sigs, async (sig, index) => {
       await expect(
-        CYNQUE.connect(signers[index]).mintCynqueWithoutPassport(
+        CYNQUE.connect(signers[index]).mintCynqueWithoutPassport(1,
           sendEth("0.2222")
         )
       ).to.be.revertedWith("PassportSaleNotLive");
@@ -129,15 +129,15 @@ describe("Tests", function () {
     await network.provider.send("evm_mine");
 
     await Promise.each(sigs, async (sig, index) => {
-      await CYNQUE.connect(signers[index]).mintCynqueWithoutPassport(
+      await CYNQUE.connect(signers[index]).mintCynqueWithoutPassport(1,
         sendEth("0.3333")
       );
-      await CYNQUE.connect(signers[index]).mintCynqueWithoutPassport(
+      await CYNQUE.connect(signers[index]).mintCynqueWithoutPassport(1,
         sendEth("0.3333")
       );
 
       await expect(
-         CYNQUE.connect(signers[index]).mintCynqueWithoutPassport(
+         CYNQUE.connect(signers[index]).mintCynqueWithoutPassport(1,
           sendEth("0.3333")
         )
       ).to.be.revertedWith("MaxMintedOnPublicSale");

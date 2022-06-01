@@ -44,6 +44,7 @@ contract CYNQUE is ERC721, Ownable {
     error NotOwnerOfCynque();
     error TeamMintAlreadyDone();
     error MaxMintedOnPublicSale();
+    error IncorrectQuantity();
 
     error MaxSupplyExceeded();
     error PassportAlreadyMinted();
@@ -65,21 +66,26 @@ contract CYNQUE is ERC721, Ownable {
 
 */
 
-    function mintCynqueWithoutPassport() external payable {
+    function mintCynqueWithoutPassport(uint256 _quantity) external payable {
+        if (_quantity < 1 || _quantity > 2) revert IncorrectQuantity();
+
         //Require cynque sale has started
         if (
             block.timestamp < publicSaleStartTime ||
             block.timestamp > publicSaleEndTime
         ) revert PassportSaleNotLive();
 
-        if(quantityOfPublicMinted[msg.sender] + 1 > 2) revert MaxMintedOnPublicSale();
+        if (quantityOfPublicMinted[msg.sender] + _quantity > 2)
+            revert MaxMintedOnPublicSale();
 
-        if (msg.value < 0.3333 ether) revert NotEnoughEtherSent();
-        
-        quantityOfPublicMinted[msg.sender]++;
+        if (msg.value < (0.3333 ether * _quantity)) revert NotEnoughEtherSent();
 
-        //Call internal method
-        mintCynque();
+        quantityOfPublicMinted[msg.sender] += _quantity;
+
+        for (uint256 i = 0; i < _quantity; i++) {
+            //Call internal method
+            mintCynque();
+        }
     }
 
     function mintCynqueWithPassports(uint256[] memory passportIds)
